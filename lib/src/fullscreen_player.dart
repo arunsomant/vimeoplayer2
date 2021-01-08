@@ -352,7 +352,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                       currentResolutionQualityKey = quality.key;
                       _controller =
                           VideoPlayerController.network(quality.value);
-                      _controller.setLooping(true);
+                      _controller.setLooping(looping);
                       _seek = true;
                       initFuture = _controller.initialize();
                       _controller.play();
