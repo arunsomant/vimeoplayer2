@@ -1,5 +1,6 @@
 library vimeoplayer;
 
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
 
   //Quality Class
   QualityLinks _quality;
-  Map _qualityValues;
+  //Map _qualityValues;
   var _qualityValue;
 
   // Seek variable
@@ -96,6 +97,34 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
   //indicate if overlay to be display on commencing video or not
   bool initialOverlay;
 
+  //contains the resolution qualities of vimeo video
+  List<MapEntry> _qualityValues = [];
+
+  // ///Get Vimeo Specific Video Resoltion Quality in number
+  // int _videoQualityComparer(String a, String b) {
+  //   const pattern = "[0-9]+(?=p)";
+
+  //   final exp = RegExp(pattern);
+  //   final q1 = int.tryParse(exp.firstMatch(a)?.group(0)) ?? 0;
+  //   final q2 = int.tryParse(exp.firstMatch(b)?.group(0)) ?? 0;
+
+  //   return q1.compareTo(q2);
+  // }
+
+  ///Get Vimeo Specific Video Resoltion Quality in number
+  int videoQualityComparer(MapEntry me1, MapEntry me2) {
+    final k1 = me1.key as String ?? '';
+    final k2 = me2.key as String ?? '';
+
+    const pattern = "[0-9]+(?=p)";
+
+    final exp = RegExp(pattern);
+    final q1 = int.tryParse(exp.firstMatch(k1)?.group(0)) ?? 0;
+    final q2 = int.tryParse(exp.firstMatch(k2)?.group(0)) ?? 0;
+
+    return q1.compareTo(q2);
+  }
+
   @override
   void initState() {
     //Create class
@@ -103,7 +132,14 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
 
     // Initialization of video controllers when receiving data from Vimeo
     _quality.getQualitiesSync().then((value) {
-      _qualityValues = value;
+      var qualities = value?.entries?.toList();
+
+      if (qualities != null) {
+        qualities.sort(videoQualityComparer);
+        qualities = qualities?.reversed?.toList();
+        _qualityValues = qualities;
+      }
+
       _qualityValue = value[value.lastKey()];
       _controller = VideoPlayerController.network(_qualityValue);
       _controller.setLooping(looping);
@@ -295,19 +331,20 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
         builder: (BuildContext bc) {
           // Forming the quality list
           final children = <Widget>[];
-          _qualityValues.forEach((elem, value) => (children.add(new ListTile(
-              title: new Text(" ${elem.toString()} fps"),
+          _qualityValues.forEach((quality) => (children.add(new ListTile(
+              title: new Text(" ${quality.key.toString()} fps"),
               onTap: () => {
                     // Update application state and redraw
                     setState(() {
                       _controller.pause();
-                      _qualityValue = value;
+                      _qualityValue = quality.value;
                       _controller =
                           VideoPlayerController.network(_qualityValue);
                       _controller.setLooping(true);
                       _seek = true;
                       initFuture = _controller.initialize();
                       _controller.play();
+                      Navigator.pop(context); //close sheet
                     }),
                   }))));
           // Output quality items as a list
@@ -403,6 +440,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                                             widget.fullScreenBackgroundColor,
                                         overlayTimeOut: widget.overlayTimeOut,
                                         controlsColor: widget.controlsColor,
+                                        qualityValues: _qualityValues,
                                       ),
                                   transitionsBuilder: (___,
                                       Animation<double> animation,
