@@ -14,8 +14,10 @@ import 'src/fullscreen_player.dart';
 class ControllerDetails {
   int position;
   bool playingStatus;
+  MapEntry resolutionQuality;
 
-  ControllerDetails({this.position, this.playingStatus});
+  ControllerDetails(
+      {this.position, this.playingStatus, this.resolutionQuality});
 }
 
 // Video player class
@@ -98,7 +100,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
 
   //contains the resolution qualities of vimeo video
   List<MapEntry> _qualityValues = [];
-  String _currentResolutionQualityKey;
+  String _qualityKey;
 
   // ///Get Vimeo Specific Video Resoltion Quality in number
   // int _videoQualityComparer(String a, String b) {
@@ -140,8 +142,8 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
         _qualityValues = qualities;
       }
 
-      _currentResolutionQualityKey = value.lastKey();
-      _qualityValue = value[_currentResolutionQualityKey];
+      _qualityKey = value.lastKey();
+      _qualityValue = value[_qualityKey];
       _controller = VideoPlayerController.network(_qualityValue);
       _controller.setLooping(looping);
       if (autoPlay) _controller.play();
@@ -325,6 +327,20 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
     );
   }
 
+  ///change the resolution quality of current video & start playing once loaded/buffered the demanded resolution url
+  void _changeVideoQuality([MapEntry quality, bool isPlaying = true]) {
+    _controller.pause();
+    _qualityKey = quality.key;
+    _qualityValue = quality.value;
+    _controller = VideoPlayerController.network(_qualityValue);
+    _controller.setLooping(true);
+    _seek = true;
+    initFuture = _controller.initialize();
+    if (isPlaying) {
+      _controller.play();
+    }
+  }
+
   //================================ Quality ================================//
   void _settingModalBottomSheet(context) {
     showModalBottomSheet(
@@ -334,21 +350,20 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           final children = <Widget>[];
           _qualityValues.forEach((quality) => (children.add(new ListTile(
               title: new Text(" ${quality.key.toString()} fps"),
-              trailing: _currentResolutionQualityKey == quality.key
-                  ? Icon(Icons.check)
-                  : null,
+              trailing: _qualityKey == quality.key ? Icon(Icons.check) : null,
               onTap: () => {
                     // Update application state and redraw
                     setState(() {
-                      _controller.pause();
-                      _currentResolutionQualityKey = quality.key;
-                      _qualityValue = quality.value;
-                      _controller =
-                          VideoPlayerController.network(_qualityValue);
-                      _controller.setLooping(true);
-                      _seek = true;
-                      initFuture = _controller.initialize();
-                      _controller.play();
+                      // _controller.pause();
+                      // _qualityKey = quality.key;
+                      // _qualityValue = quality.value;
+                      // _controller =
+                      //     VideoPlayerController.network(_qualityValue);
+                      // _controller.setLooping(true);
+                      // _seek = true;
+                      // initFuture = _controller.initialize();
+                      // _controller.play();
+                      _changeVideoQuality(quality, _controller.value.isPlaying);
                       Navigator.pop(context); //close sheet
                     }),
                   }))));
@@ -446,6 +461,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                                         overlayTimeOut: widget.overlayTimeOut,
                                         controlsColor: widget.controlsColor,
                                         qualityValues: _qualityValues,
+                                        qualityKey: _qualityKey,
                                       ),
                                   transitionsBuilder: (___,
                                       Animation<double> animation,
@@ -457,12 +473,25 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                                           scale: animation, child: child),
                                     );
                                   }));
+
                       position = controllerDetails?.position;
-                      if (controllerDetails?.playingStatus ?? false) {
+
+                      bool didChangeQuality = !(_qualityKey ==
+                              controllerDetails?.resolutionQuality?.key ??
+                          '');
+                      if (didChangeQuality) {
                         setState(() {
-                          _controller.play();
-                          _seek = true;
+                          _changeVideoQuality(
+                              controllerDetails.resolutionQuality,
+                              controllerDetails?.playingStatus ?? false);
                         });
+                      } else {
+                        if (controllerDetails?.playingStatus ?? false) {
+                          setState(() {
+                            _controller.play();
+                            _seek = true;
+                          });
+                        }
                       }
                     }),
               ),

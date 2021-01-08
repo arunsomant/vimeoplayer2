@@ -74,7 +74,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
 
   Future<void> initFuture;
   var qualityValue;
-  String currentResolutionQualityKey;
+  String qualityKey;
 
   _FullscreenPlayerState(
     this._id,
@@ -84,7 +84,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
     this.position,
     this.initFuture,
     this.qualityValue,
-    this.currentResolutionQualityKey,
+    this.qualityKey,
   );
 
   // Quality Class
@@ -153,6 +153,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
       ControllerDetails(
         playingStatus: playing,
         position: _controller.value.position.inSeconds,
+        resolutionQuality: MapEntry(qualityKey, qualityValue),
       ),
     );
     return Future.value(true);
@@ -342,14 +343,12 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
           final children = <Widget>[];
           widget.qualityValues.forEach((quality) => (children.add(new ListTile(
               title: new Text(" ${quality.key.toString()} fps"),
-              trailing: currentResolutionQualityKey == quality.key
-                  ? Icon(Icons.check)
-                  : null,
+              trailing: qualityKey == quality.key ? Icon(Icons.check) : null,
               onTap: () => {
                     // Update application state and redraw
                     setState(() {
                       _controller.pause();
-                      currentResolutionQualityKey = quality.key;
+                      qualityKey = quality.key;
                       _controller =
                           VideoPlayerController.network(quality.value);
                       _controller.setLooping(true);
@@ -446,6 +445,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                         ControllerDetails(
                           playingStatus: playing,
                           position: _controller.value.position.inSeconds,
+                          resolutionQuality: MapEntry(qualityKey, qualityValue),
                         ),
                       );
                       // Navigator.pop(context, {
