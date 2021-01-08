@@ -28,11 +28,13 @@ class FullscreenPlayer extends StatefulWidget {
 
   //contains the resolution qualities of vimeo video
   final List<MapEntry> qualityValues;
+  final String qualityKey;
 
   FullscreenPlayer({
     @required this.id,
     @required this.overlayTimeOut,
     @required this.qualityValues,
+    @required this.qualityKey,
     this.autoPlay = false,
     this.looping,
     this.controller,
@@ -54,6 +56,7 @@ class FullscreenPlayer extends StatefulWidget {
         position,
         initFuture,
         qualityValue,
+        qualityKey,
       );
 }
 
@@ -71,9 +74,18 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
 
   Future<void> initFuture;
   var qualityValue;
+  String currentResolutionQualityKey;
 
-  _FullscreenPlayerState(this._id, this.autoPlay, this.looping, this.controller,
-      this.position, this.initFuture, this.qualityValue);
+  _FullscreenPlayerState(
+    this._id,
+    this.autoPlay,
+    this.looping,
+    this.controller,
+    this.position,
+    this.initFuture,
+    this.qualityValue,
+    this.currentResolutionQualityKey,
+  );
 
   // Quality Class
   //QualityLinks _quality;
@@ -330,10 +342,14 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
           final children = <Widget>[];
           widget.qualityValues.forEach((quality) => (children.add(new ListTile(
               title: new Text(" ${quality.key.toString()} fps"),
+              trailing: currentResolutionQualityKey == quality.key
+                  ? Icon(Icons.check)
+                  : null,
               onTap: () => {
                     // Update application state and redraw
                     setState(() {
                       _controller.pause();
+                      currentResolutionQualityKey = quality.key;
                       _controller =
                           VideoPlayerController.network(quality.value);
                       _controller.setLooping(true);

@@ -98,6 +98,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
 
   //contains the resolution qualities of vimeo video
   List<MapEntry> _qualityValues = [];
+  String _currentResolutionQualityKey;
 
   // ///Get Vimeo Specific Video Resoltion Quality in number
   // int _videoQualityComparer(String a, String b) {
@@ -139,7 +140,8 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
         _qualityValues = qualities;
       }
 
-      _qualityValue = value[value.lastKey()];
+      _currentResolutionQualityKey = value.lastKey();
+      _qualityValue = value[_currentResolutionQualityKey];
       _controller = VideoPlayerController.network(_qualityValue);
       _controller.setLooping(looping);
       if (autoPlay) _controller.play();
@@ -332,10 +334,14 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           final children = <Widget>[];
           _qualityValues.forEach((quality) => (children.add(new ListTile(
               title: new Text(" ${quality.key.toString()} fps"),
+              trailing: _currentResolutionQualityKey == quality.key
+                  ? Icon(Icons.check)
+                  : null,
               onTap: () => {
                     // Update application state and redraw
                     setState(() {
                       _controller.pause();
+                      _currentResolutionQualityKey = quality.key;
                       _qualityValue = quality.value;
                       _controller =
                           VideoPlayerController.network(_qualityValue);
