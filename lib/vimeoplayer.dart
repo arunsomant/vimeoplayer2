@@ -446,6 +446,8 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                                         overlayTimeOut: widget.overlayTimeOut,
                                         controlsColor: widget.controlsColor,
                                         qualityValues: _qualityValues,
+                                        qualityKey:
+                                            _currentResolutionQualityKey,
                                       ),
                                   transitionsBuilder: (___,
                                       Animation<double> animation,
