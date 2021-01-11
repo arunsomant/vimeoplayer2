@@ -352,7 +352,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                       currentResolutionQualityKey = quality.key;
                       _controller =
                           VideoPlayerController.network(quality.value);
-                      _controller.setLooping(true);
+                      _controller.setLooping(looping);
                       _seek = true;
                       initFuture = _controller.initialize();
                       _controller.play();
@@ -398,21 +398,36 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                       top: videoHeight / 2 - 50,
                       bottom: videoHeight / 2 - 30,
                     ),
-                    icon: _controller.value.isPlaying
-                        ? Icon(
-                            Icons.pause,
-                            size: 60.0,
-                            color: widget.controlsColor,
-                          )
-                        : Icon(
-                            Icons.play_arrow,
-                            size: 60.0,
-                            color: widget.controlsColor,
-                          ),
+                    icon:
+                        _controller.value.duration == _controller.value.position
+                            ? Icon(
+                                Icons.replay,
+                                size: 60.0,
+                                color: widget.controlsColor,
+                              )
+                            : _controller.value.isPlaying
+                                ? Icon(
+                                    Icons.pause,
+                                    size: 60.0,
+                                    color: widget.controlsColor,
+                                  )
+                                : Icon(
+                                    Icons.play_arrow,
+                                    size: 60.0,
+                                    color: widget.controlsColor,
+                                  ),
                     onPressed: () {
                       setState(() {
+                        //replay video
+                        if (_controller.value.position ==
+                            _controller.value.duration) {
+                          setState(() {
+                            _controller.seekTo(Duration());
+                            _controller.play();
+                          });
+                        }
                         //vanish the overlay if play button is pressed
-                        if (!_controller.value.isPlaying) {
+                        else if (!_controller.value.isPlaying) {
                           overlayTimer?.cancel();
                           _controller.play();
                           _overlay = !_overlay;

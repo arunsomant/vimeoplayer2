@@ -345,7 +345,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                       _qualityValue = quality.value;
                       _controller =
                           VideoPlayerController.network(_qualityValue);
-                      _controller.setLooping(true);
+                      _controller.setLooping(looping);
                       _seek = true;
                       initFuture = _controller.initialize();
                       _controller.play();
@@ -385,19 +385,37 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                 ),
               ),
               Center(
+                //child: ValueListenableBuilder(
+                //  valueListenable: _controller,
+                //  builder: (context, VideoPlayerValue value, child) =>
                 child: IconButton(
                     padding: EdgeInsets.only(
                         top: videoHeight / 2 - 30,
                         bottom: videoHeight / 2 - 30),
-                    icon: _controller.value.isPlaying
-                        ? Icon(Icons.pause,
-                            size: 60.0, color: widget.controlsColor)
-                        : Icon(Icons.play_arrow,
-                            size: 60.0, color: widget.controlsColor),
+                    icon:
+                        _controller.value.position == _controller.value.duration
+                            ? Icon(
+                                Icons.replay,
+                                color: widget.controlsColor,
+                                size: 60.0,
+                              )
+                            : _controller.value.isPlaying
+                                ? Icon(Icons.pause,
+                                    size: 60.0, color: widget.controlsColor)
+                                : Icon(Icons.play_arrow,
+                                    size: 60.0, color: widget.controlsColor),
                     onPressed: () {
                       setState(() {
+                        //replay video
+                        if (_controller.value.position ==
+                            _controller.value.duration) {
+                          setState(() {
+                            _controller.seekTo(Duration());
+                            _controller.play();
+                          });
+                        }
                         //vanish the overlay if play button is pressed
-                        if (!_controller.value.isPlaying) {
+                        else if (!_controller.value.isPlaying) {
                           overlayTimer?.cancel();
                           _controller.play();
                           _overlay = !_overlay;
@@ -407,6 +425,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                       });
                     }),
               ),
+              //),
               Container(
                 margin: EdgeInsets.only(
                     top: videoHeight - 70, left: videoWidth + videoMargin - 50),
@@ -446,6 +465,8 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                                         overlayTimeOut: widget.overlayTimeOut,
                                         controlsColor: widget.controlsColor,
                                         qualityValues: _qualityValues,
+                                        qualityKey:
+                                            _currentResolutionQualityKey,
                                       ),
                                   transitionsBuilder: (___,
                                       Animation<double> animation,
