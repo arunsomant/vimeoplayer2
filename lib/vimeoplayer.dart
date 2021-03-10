@@ -282,7 +282,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           GestureDetector(
               // ======= Rewind ======= //
               child: Container(
-                width: doubleTapLWidth / 2 - 30,
+                width: doubleTapLWidth / 2 - 90,
                 height: doubleTapLHeight - 46,
                 margin: EdgeInsets.fromLTRB(
                     0, 10, doubleTapLWidth / 2 + 30, doubleTapLMargin + 20),
@@ -303,7 +303,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           GestureDetector(
               child: Container(
                 // ======= Fast forward ======= //
-                width: doubleTapRWidth / 2 - 45,
+                width: doubleTapRWidth / 2 - 105,
                 height: doubleTapRHeight - 60,
                 margin: EdgeInsets.fromLTRB(doubleTapRWidth / 2 + 45,
                     doubleTapRMargin, 0, doubleTapRMargin + 20),
@@ -333,7 +333,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           // Forming the quality list
           final children = <Widget>[];
           _qualityValues.forEach((quality) => (children.add(new ListTile(
-              title: new Text(" ${quality.key.toString()} fps"),
+              title: new Text(" ${quality.key.toString()} fps",style: TextStyle(fontWeight: _currentResolutionQualityKey == quality.key ? FontWeight.bold : FontWeight.normal),),
               trailing: _currentResolutionQualityKey == quality.key
                   ? Icon(Icons.check)
                   : null,
@@ -388,52 +388,85 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                 //child: ValueListenableBuilder(
                 //  valueListenable: _controller,
                 //  builder: (context, VideoPlayerValue value, child) =>
-                child: IconButton(
-                    padding: EdgeInsets.only(
-                        top: videoHeight / 2 - 30,
-                        bottom: videoHeight / 2 - 30),
-                    icon:
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(
+                          top: videoHeight / 2 - 30,
+                          bottom: videoHeight / 2 - 30),
+                      child: IconButton(
+                        padding: EdgeInsets.only(top: 30),
+                        onPressed: (){
+                          _controller.seekTo(Duration(
+                              seconds: _controller.value.position.inSeconds - 10));
+                        },
+                        icon: Icon(Icons.replay_10,color: widget.controlsColor,),
+                      ),
+                    ),
+                    IconButton(
+                        padding: EdgeInsets.only(
+                            top: videoHeight / 2 - 30,
+                            bottom: videoHeight / 2 - 30),
+                        icon:
                         _controller.value.position == _controller.value.duration
                             ? Icon(
-                                Icons.replay,
-                                color: widget.controlsColor,
-                                size: 60.0,
-                              )
+                          Icons.replay,
+                          color: widget.controlsColor,
+                          size: 60.0,
+                        )
                             : _controller.value.isPlaying
-                                ? Icon(Icons.pause,
-                                    size: 60.0, color: widget.controlsColor)
-                                : Icon(Icons.play_arrow,
-                                    size: 60.0, color: widget.controlsColor),
-                    onPressed: () {
-                      setState(() {
-                        //replay video
-                        if (_controller.value.position ==
-                            _controller.value.duration) {
+                            ? Icon(Icons.pause,
+                            size: 60.0, color: widget.controlsColor)
+                            : Icon(Icons.play_arrow,
+                            size: 60.0, color: widget.controlsColor),
+                        onPressed: () {
                           setState(() {
-                            _controller.seekTo(Duration());
-                            _controller.play();
+                            //replay video
+                            if (_controller.value.position ==
+                                _controller.value.duration) {
+                              setState(() {
+                                _controller.seekTo(Duration());
+                                _controller.play();
+                              });
+                            }
+                            //vanish the overlay if play button is pressed
+                            else if (!_controller.value.isPlaying) {
+                              overlayTimer?.cancel();
+                              _controller.play();
+                              _overlay = !_overlay;
+                            } else {
+                              _controller.pause();
+                            }
                           });
-                        }
-                        //vanish the overlay if play button is pressed
-                        else if (!_controller.value.isPlaying) {
-                          overlayTimer?.cancel();
-                          _controller.play();
-                          _overlay = !_overlay;
-                        } else {
-                          _controller.pause();
-                        }
-                      });
-                    }),
+                        }),
+                    Container(
+                      padding: EdgeInsets.only(
+                          top: videoHeight / 2 - 30,
+                          bottom: videoHeight / 2 - 30),
+                      child: IconButton(
+                        padding: EdgeInsets.only(top: 30),
+                        onPressed: (){
+                          _controller.seekTo(Duration(
+                              seconds: _controller.value.position.inSeconds + 10));
+                        },
+                        icon: Icon(Icons.forward_10,color: widget.controlsColor,),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               //),
               Container(
                 margin: EdgeInsets.only(
-                    top: videoHeight - 70, left: videoWidth + videoMargin - 50),
+                    top: videoHeight - 35, left: videoWidth + videoMargin - 45),
                 child: IconButton(
                     alignment: AlignmentDirectional.center,
+                    padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 2.0),
                     icon: Icon(
                       Icons.fullscreen,
-                      size: 30.0,
+                     // size: 30.0,
                       color: widget.controlsColor,
                     ),
                     onPressed: () async {
@@ -505,8 +538,14 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
               Container(
                 // ===== Slider ===== //
                 margin: EdgeInsets.only(
-                    top: videoHeight - 26, left: videoMargin), //CHECK IT
-                child: _videoOverlaySlider(),
+                    top: videoHeight - 26, left: videoMargin,), //CHECK IT
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _videoOverlaySlider(),
+                    _speedControl()
+                  ],
+                ),
               )
             ],
           )
@@ -547,14 +586,14 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
               ),
               Container(
                 height: 20,
-                width: videoWidth - 92,
+                width: videoWidth - 162, // speed icon size
                 child: VideoProgressIndicator(
                   _controller,
                   allowScrubbing: true,
                   colors: VideoProgressColors(
-                    playedColor: Color(0xFF22A3D2),
-                    backgroundColor: Color(0x5515162B),
-                    bufferedColor: Color(0x5583D8F7),
+                    playedColor: Colors.white,
+                    backgroundColor: Colors.white30,
+                    bufferedColor: Colors.white54,
                   ),
                   padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
                 ),
@@ -583,6 +622,36 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
   ///Convert the integer number in atleast 2 digit format (i.e appending 0 in front if any)
   String _twoDigits(int n) => n.toString().padLeft(2, '0');
 
+
+  Widget _speedControl(){
+    return PopupMenuButton<double>(
+      onSelected: (rate){ _controller.setPlaybackSpeed(rate);},
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 2.0),
+        child: Icon(Icons.speed,color: Colors.white,),
+      ),
+      tooltip: 'PlayBack Rate',
+      itemBuilder: (context) => [
+        _popUpItemSpeed('2.0x', 2.0),
+        _popUpItemSpeed('1.75x', 1.75),
+        _popUpItemSpeed('1.5x', 1.5),
+        _popUpItemSpeed('1.25x', 1.25),
+        _popUpItemSpeed('Normal', 1.0),
+        _popUpItemSpeed('0.75x', 0.75),
+        _popUpItemSpeed('0.5x', 0.5),
+        _popUpItemSpeed('0.25x', 0.25),
+      ],
+    );
+
+
+  }
+  Widget _popUpItemSpeed(String text, double rate) {
+    return CheckedPopupMenuItem(
+      checked: _controller.value.playbackSpeed == rate,
+      child: Text(text),
+      value: rate,
+    );
+  }
   @override
   void dispose() {
     overlayTimer?.cancel();
