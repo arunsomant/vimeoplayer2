@@ -282,7 +282,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           GestureDetector(
               // ======= Rewind ======= //
               child: Container(
-                width: doubleTapLWidth / 2 - 90,
+                width: doubleTapLWidth / 2 - 30,
                 height: doubleTapLHeight - 46,
                 margin: EdgeInsets.fromLTRB(
                     0, 10, doubleTapLWidth / 2 + 30, doubleTapLMargin + 20),
@@ -303,7 +303,7 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
           GestureDetector(
               child: Container(
                 // ======= Fast forward ======= //
-                width: doubleTapRWidth / 2 - 105,
+                width: doubleTapRWidth / 2 - 45,
                 height: doubleTapRHeight - 60,
                 margin: EdgeInsets.fromLTRB(doubleTapRWidth / 2 + 45,
                     doubleTapRMargin, 0, doubleTapRMargin + 20),
@@ -388,74 +388,42 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                 //child: ValueListenableBuilder(
                 //  valueListenable: _controller,
                 //  builder: (context, VideoPlayerValue value, child) =>
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(
-                          top: videoHeight / 2 - 30,
-                          bottom: videoHeight / 2 - 30),
-                      child: IconButton(
-                        padding: EdgeInsets.only(top: 30),
-                        onPressed: (){
-                          _controller.seekTo(Duration(
-                              seconds: _controller.value.position.inSeconds - 10));
-                        },
-                        icon: Icon(Icons.replay_10,color: widget.controlsColor,),
-                      ),
-                    ),
-                    IconButton(
-                        padding: EdgeInsets.only(
-                            top: videoHeight / 2 - 30,
-                            bottom: videoHeight / 2 - 30),
-                        icon:
-                        _controller.value.position == _controller.value.duration
-                            ? Icon(
-                          Icons.replay,
-                          color: widget.controlsColor,
-                          size: 60.0,
-                        )
-                            : _controller.value.isPlaying
-                            ? Icon(Icons.pause,
-                            size: 60.0, color: widget.controlsColor)
-                            : Icon(Icons.play_arrow,
-                            size: 60.0, color: widget.controlsColor),
-                        onPressed: () {
+                child:  IconButton(
+                    padding: EdgeInsets.only(
+                        top: videoHeight / 2 - 30,
+                        bottom: videoHeight / 2 - 30),
+                    icon:
+                    _controller.value.position == _controller.value.duration
+                        ? Icon(
+                      Icons.replay,
+                      color: widget.controlsColor,
+                      size: 60.0,
+                    )
+                        : _controller.value.isPlaying
+                        ? Icon(Icons.pause,
+                        size: 60.0, color: widget.controlsColor)
+                        : Icon(Icons.play_arrow,
+                        size: 60.0, color: widget.controlsColor),
+                    onPressed: () {
+                      setState(() {
+                        //replay video
+                        if (_controller.value.position ==
+                            _controller.value.duration) {
                           setState(() {
-                            //replay video
-                            if (_controller.value.position ==
-                                _controller.value.duration) {
-                              setState(() {
-                                _controller.seekTo(Duration());
-                                _controller.play();
-                              });
-                            }
-                            //vanish the overlay if play button is pressed
-                            else if (!_controller.value.isPlaying) {
-                              overlayTimer?.cancel();
-                              _controller.play();
-                              _overlay = !_overlay;
-                            } else {
-                              _controller.pause();
-                            }
+                            _controller.seekTo(Duration());
+                            _controller.play();
                           });
-                        }),
-                    Container(
-                      padding: EdgeInsets.only(
-                          top: videoHeight / 2 - 30,
-                          bottom: videoHeight / 2 - 30),
-                      child: IconButton(
-                        padding: EdgeInsets.only(top: 30),
-                        onPressed: (){
-                          _controller.seekTo(Duration(
-                              seconds: _controller.value.position.inSeconds + 10));
-                        },
-                        icon: Icon(Icons.forward_10,color: widget.controlsColor,),
-                      ),
-                    ),
-                  ],
-                ),
+                        }
+                        //vanish the overlay if play button is pressed
+                        else if (!_controller.value.isPlaying) {
+                          overlayTimer?.cancel();
+                          _controller.play();
+                          _overlay = !_overlay;
+                        } else {
+                          _controller.pause();
+                        }
+                      });
+                    }),
               ),
               //),
               Container(
