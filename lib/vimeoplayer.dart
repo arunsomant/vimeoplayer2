@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:wakelock/wakelock.dart';
 import 'src/quality_links.dart';
 import 'dart:async';
@@ -201,126 +202,139 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
   // Draw the player elements
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
-        alignment: AlignmentDirectional.center,
-        children: <Widget>[
-          GestureDetector(
-            child: FutureBuilder(
-              future: initFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  // Control the width and height of the video
-                  double delta = MediaQuery.of(context).size.width -
-                      MediaQuery.of(context).size.height *
+    return VisibilityDetector(
+      key: Key("${_controller.hashCode}_key"),
+      onVisibilityChanged: (VisibilityInfo info){
+        if (info.visibleFraction == 0) {
+          if(_controller.value.isPlaying)
+            _controller.pause();
+        } else {
+          if (!_controller.value.isPlaying) {
+            _controller.play();
+          }
+        }
+      },
+      child: Center(
+        child: Stack(
+          alignment: AlignmentDirectional.center,
+          children: <Widget>[
+            GestureDetector(
+              child: FutureBuilder(
+                future: initFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    // Control the width and height of the video
+                    double delta = MediaQuery.of(context).size.width -
+                        MediaQuery.of(context).size.height *
+                            _controller.value.aspectRatio;
+
+                    // Calculate the width and height of the video player relative to the sides and the orientation of the device
+                    if (MediaQuery.of(context).orientation ==
+                            Orientation.portrait ||
+                        delta < 0) {
+                      videoHeight = MediaQuery.of(context).size.width /
                           _controller.value.aspectRatio;
+                      videoWidth = MediaQuery.of(context).size.width;
+                      videoMargin = 0;
+                    } else {
+                      videoHeight = MediaQuery.of(context).size.height;
+                      videoWidth = videoHeight * _controller.value.aspectRatio;
+                      videoMargin =
+                          (MediaQuery.of(context).size.width - videoWidth) / 2;
+                    }
 
-                  // Calculate the width and height of the video player relative to the sides and the orientation of the device
-                  if (MediaQuery.of(context).orientation ==
-                          Orientation.portrait ||
-                      delta < 0) {
-                    videoHeight = MediaQuery.of(context).size.width /
-                        _controller.value.aspectRatio;
-                    videoWidth = MediaQuery.of(context).size.width;
-                    videoMargin = 0;
-                  } else {
-                    videoHeight = MediaQuery.of(context).size.height;
-                    videoWidth = videoHeight * _controller.value.aspectRatio;
-                    videoMargin =
-                        (MediaQuery.of(context).size.width - videoWidth) / 2;
-                  }
+                    // Start where we left off when changing quality
+                    if (_seek && _controller.value.duration.inSeconds > 2) {
+                      _controller.seekTo(Duration(seconds: position));
+                      _seek = false;
+                    }
 
-                  // Start where we left off when changing quality
-                  if (_seek && _controller.value.duration.inSeconds > 2) {
-                    _controller.seekTo(Duration(seconds: position));
-                    _seek = false;
-                  }
-
-                  //vanish overlayer if so.
-                  if (initialOverlay) {
-                    overlayTimer =
-                        Timer(Duration(seconds: widget.overlayTimeOut), () {
-                      setState(() {
-                        _overlay = false;
-                        doubleTapRHeight = videoHeight + 36;
-                        doubleTapLHeight = videoHeight + 16;
-                        doubleTapRMargin = 0;
-                        doubleTapLMargin = 0;
+                    //vanish overlayer if so.
+                    if (initialOverlay) {
+                      overlayTimer =
+                          Timer(Duration(seconds: widget.overlayTimeOut), () {
+                        setState(() {
+                          _overlay = false;
+                          doubleTapRHeight = videoHeight + 36;
+                          doubleTapLHeight = videoHeight + 16;
+                          doubleTapRMargin = 0;
+                          doubleTapLMargin = 0;
+                        });
                       });
-                    });
-                    initialOverlay = false;
-                  }
+                      initialOverlay = false;
+                    }
 
-                  // Rendering player elements
-                  return Stack(
-                    children: <Widget>[
-                      Container(
-                        height: videoHeight,
-                        width: videoWidth,
-                        margin: EdgeInsets.only(left: videoMargin),
-                        child: VideoPlayer(_controller),
+                    // Rendering player elements
+                    return Stack(
+                      children: <Widget>[
+                        Container(
+                          height: videoHeight,
+                          width: videoWidth,
+                          margin: EdgeInsets.only(left: videoMargin),
+                          child: VideoPlayer(_controller),
+                        ),
+                        _videoOverlay(),
+                      ],
+                    );
+                  } else {
+                    return Center(
+                      heightFactor: 6,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4,
+                        valueColor: widget.loadingIndicatorColor != null
+                            ? AlwaysStoppedAnimation<Color>(
+                                widget.loadingIndicatorColor)
+                            : null,
                       ),
-                      _videoOverlay(),
-                    ],
-                  );
-                } else {
-                  return Center(
-                    heightFactor: 6,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 4,
-                      valueColor: widget.loadingIndicatorColor != null
-                          ? AlwaysStoppedAnimation<Color>(
-                              widget.loadingIndicatorColor)
-                          : null,
-                    ),
-                  );
-                }
-              },
+                    );
+                  }
+                },
+              ),
+              onTap: _toogleOverlay,
             ),
-            onTap: _toogleOverlay,
-          ),
-          GestureDetector(
-              // ======= Rewind ======= //
-              child: Container(
-                width: doubleTapLWidth / 2 - 30,
-                height: doubleTapLHeight - 46,
-                margin: EdgeInsets.fromLTRB(
-                    0, 10, doubleTapLWidth / 2 + 30, doubleTapLMargin + 20),
-                decoration: BoxDecoration(
-                    //color: Colors.red,
-                    ),
-              ),
+            GestureDetector(
+                // ======= Rewind ======= //
+                child: Container(
+                  width: doubleTapLWidth / 2 - 30,
+                  height: doubleTapLHeight - 46,
+                  margin: EdgeInsets.fromLTRB(
+                      0, 10, doubleTapLWidth / 2 + 30, doubleTapLMargin + 20),
+                  decoration: BoxDecoration(
+                      //color: Colors.red,
+                      ),
+                ),
 
-              // Resize double tap blocks. Needed to open buttons
-              // "Full screen" and "Quality" with overlay enabled
-              onTap: _toogleOverlay,
-              onDoubleTap: () {
-                setState(() {
-                  _controller.seekTo(Duration(
-                      seconds: _controller.value.position.inSeconds - 10));
-                });
-              }),
-          GestureDetector(
-              child: Container(
-                // ======= Fast forward ======= //
-                width: doubleTapRWidth / 2 - 45,
-                height: doubleTapRHeight - 60,
-                margin: EdgeInsets.fromLTRB(doubleTapRWidth / 2 + 45,
-                    doubleTapRMargin, 0, doubleTapRMargin + 20),
-                decoration: BoxDecoration(
-                    //color: Colors.red,
-                    ),
-              ),
-              // Resize double tap blocks. Needed to open buttons
-              // "Full screen" and "Quality" with overlay enabled
-              onTap: _toogleOverlay,
-              onDoubleTap: () {
-                setState(() {
-                  _controller.seekTo(Duration(
-                      seconds: _controller.value.position.inSeconds + 10));
-                });
-              }),
-        ],
+                // Resize double tap blocks. Needed to open buttons
+                // "Full screen" and "Quality" with overlay enabled
+                onTap: _toogleOverlay,
+                onDoubleTap: () {
+                  setState(() {
+                    _controller.seekTo(Duration(
+                        seconds: _controller.value.position.inSeconds - 10));
+                  });
+                }),
+            GestureDetector(
+                child: Container(
+                  // ======= Fast forward ======= //
+                  width: doubleTapRWidth / 2 - 45,
+                  height: doubleTapRHeight - 60,
+                  margin: EdgeInsets.fromLTRB(doubleTapRWidth / 2 + 45,
+                      doubleTapRMargin, 0, doubleTapRMargin + 20),
+                  decoration: BoxDecoration(
+                      //color: Colors.red,
+                      ),
+                ),
+                // Resize double tap blocks. Needed to open buttons
+                // "Full screen" and "Quality" with overlay enabled
+                onTap: _toogleOverlay,
+                onDoubleTap: () {
+                  setState(() {
+                    _controller.seekTo(Duration(
+                        seconds: _controller.value.position.inSeconds + 10));
+                  });
+                }),
+          ],
+        ),
       ),
     );
   }

@@ -12,6 +12,7 @@ dependencies:
   video_player: '>=0.10.0 <2.0.0'
   http: ^0.12.1
   wakelock: ^0.2.1+1
+  visibility_detector: ^0.1.5
 
 dev_dependencies:
   flutter_test:
