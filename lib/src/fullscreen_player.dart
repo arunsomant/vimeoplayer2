@@ -292,7 +292,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                 ),
                 GestureDetector(
                     child: Container(
-                      width: doubleTapLWidthFS / 2 - 90,
+                      width: doubleTapLWidthFS / 2 - 30,
                       height: doubleTapLHeightFS - 44,
                       margin: EdgeInsets.fromLTRB(
                           0, 0, doubleTapLWidthFS / 2 + 30, 40),
@@ -312,7 +312,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                     }),
                 GestureDetector(
                     child: Container(
-                      width: doubleTapRWidthFS / 2 - 105,
+                      width: doubleTapRWidthFS / 2 - 45,
                       height: doubleTapRHeightFS - 80,
                       margin: EdgeInsets.fromLTRB(doubleTapRWidthFS / 2 + 45, 0,
                           0, doubleTapLMarginFS + 20),
@@ -393,81 +393,49 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
                 ),
               ),
               Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(
-                          top: videoHeight / 2 - 50,
-                          bottom: videoHeight / 2 - 30),
-                      child: IconButton(
-                        padding: EdgeInsets.only(top: 50),
-                        onPressed: (){
-                          _controller.seekTo(Duration(
-                              seconds: _controller.value.position.inSeconds - 10));
-                        },
-                        icon: Icon(Icons.replay_10,color: widget.controlsColor,),
-                      ),
+                child: IconButton(
+                    padding: EdgeInsets.only(
+                      top: videoHeight / 2 - 50,
+                      bottom: videoHeight / 2 - 30,
                     ),
-                    IconButton(
-                        padding: EdgeInsets.only(
-                          top: videoHeight / 2 - 50,
-                          bottom: videoHeight / 2 - 30,
-                        ),
-                        icon:
-                        _controller.value.duration == _controller.value.position
-                            ? Icon(
-                          Icons.replay,
-                          size: 60.0,
-                          color: widget.controlsColor,
-                        )
-                            : _controller.value.isPlaying
-                            ? Icon(
-                          Icons.pause,
-                          size: 60.0,
-                          color: widget.controlsColor,
-                        )
-                            : Icon(
-                          Icons.play_arrow,
-                          size: 60.0,
-                          color: widget.controlsColor,
-                        ),
-                        onPressed: () {
+                    icon:
+                    _controller.value.duration == _controller.value.position
+                        ? Icon(
+                      Icons.replay,
+                      size: 60.0,
+                      color: widget.controlsColor,
+                    )
+                        : _controller.value.isPlaying
+                        ? Icon(
+                      Icons.pause,
+                      size: 60.0,
+                      color: widget.controlsColor,
+                    )
+                        : Icon(
+                      Icons.play_arrow,
+                      size: 60.0,
+                      color: widget.controlsColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        //replay video
+                        if (_controller.value.position ==
+                            _controller.value.duration) {
                           setState(() {
-                            //replay video
-                            if (_controller.value.position ==
-                                _controller.value.duration) {
-                              setState(() {
-                                _controller.seekTo(Duration());
-                                _controller.play();
-                              });
-                            }
-                            //vanish the overlay if play button is pressed
-                            else if (!_controller.value.isPlaying) {
-                              overlayTimer?.cancel();
-                              _controller.play();
-                              _overlay = !_overlay;
-                            } else {
-                              _controller.pause();
-                            }
+                            _controller.seekTo(Duration());
+                            _controller.play();
                           });
-                        }),
-                    Container(
-                      padding: EdgeInsets.only(
-                          top: videoHeight / 2 - 50,
-                          bottom: videoHeight / 2 - 30),
-                      child: IconButton(
-                        padding: EdgeInsets.only(top: 50),
-                        onPressed: (){
-                          _controller.seekTo(Duration(
-                              seconds: _controller.value.position.inSeconds + 10));
-                        },
-                        icon: Icon(Icons.forward_10,color: widget.controlsColor,),
-                      ),
-                    ),
-                  ],
-                ),
+                        }
+                        //vanish the overlay if play button is pressed
+                        else if (!_controller.value.isPlaying) {
+                          overlayTimer?.cancel();
+                          _controller.play();
+                          _overlay = !_overlay;
+                        } else {
+                          _controller.pause();
+                        }
+                      });
+                    }),
               ),
               Container(
 
