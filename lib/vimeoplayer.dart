@@ -36,6 +36,8 @@ class VimeoPlayer extends StatefulWidget {
   final Color loadingIndicatorColor;
   final Color controlsColor;
 
+  final String placeholder;
+
   VimeoPlayer({
     @required this.id,
     this.autoPlay = false,
@@ -45,6 +47,7 @@ class VimeoPlayer extends StatefulWidget {
     this.fullScreenBackgroundColor,
     this.loadingIndicatorColor,
     this.controlsColor,
+    this.placeholder,
     int overlayTimeOut = 0,
     Key key,
   })  : this.overlayTimeOut = max(overlayTimeOut, 5),
@@ -279,15 +282,23 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
                       ],
                     );
                   } else {
-                    return Center(
-                      heightFactor: 6,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 4,
-                        valueColor: widget.loadingIndicatorColor != null
-                            ? AlwaysStoppedAnimation<Color>(
-                                widget.loadingIndicatorColor)
-                            : null,
-                      ),
+                    return Stack(
+                      children: [
+                        widget.placeholder!=null ? Image.network(
+                          widget.placeholder,
+                          fit: BoxFit.fitHeight,
+                        ) : Container(),
+                        Center(
+                          heightFactor: 6,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 4,
+                            valueColor: widget.loadingIndicatorColor != null
+                                ? AlwaysStoppedAnimation<Color>(
+                                    widget.loadingIndicatorColor)
+                                : null,
+                          ),
+                        ),
+                      ],
                     );
                   }
                 },
