@@ -210,13 +210,8 @@ class _VimeoPlayerState extends State<VimeoPlayer> {
       onVisibilityChanged: (VisibilityInfo info){
         if (info.visibleFraction == 0) {
           if(_controller!=null)
-            if(_controller.value.isPlaying)
+            if(_controller.value.isPlaying&&_controller.value.position.inSeconds>2)
               _controller?.pause();
-        } else {
-          if(_controller!=null)
-           if (!_controller.value.isPlaying) {
-            _controller.play();
-            }
         }
       },
       child: Center(
