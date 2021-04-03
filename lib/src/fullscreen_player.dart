@@ -205,7 +205,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
               onVisibilityChanged: (VisibilityInfo info){
                 if (info.visibleFraction == 0) {
                   if(_controller!=null)
-                    if(_controller.value.isPlaying&&_controller.value.position.inSeconds>2)
+                    if(_controller.value.isPlaying&&_controller.value.position.inSeconds>0)
                       _controller?.pause();
                 }
               },
