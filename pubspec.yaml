@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  video_player: '>=0.10.0 <2.0.0'
+  video_player: '>=2.1.1 <2.2.5'
   http: ^0.12.1
   wakelock: ^0.2.1+1
   visibility_detector: ^0.1.5
