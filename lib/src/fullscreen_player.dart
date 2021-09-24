@@ -529,7 +529,7 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
     return ValueListenableBuilder(
       valueListenable: _controller,
       builder: (context, VideoPlayerValue value, child) {
-        if (!value.hasError && value.initialized) {
+        if (!value.hasError && value.isInitialized) {
           return Row(
             children: <Widget>[
               Container(
